@@ -41,4 +41,4 @@ CREATE TABLE IF NOT EXISTS deliveries(
 
 ''')
     
-conn.commit()
+sqlite3.connect()
