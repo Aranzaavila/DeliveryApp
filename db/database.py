@@ -6,7 +6,6 @@ def connections(db_file):
 
 def tables(conn):
     cursor = conn.cursor()
-
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS freelancers (id INTEGER PRIMARY KEY,
                    name TEXT NOT NULL,
@@ -41,4 +40,4 @@ CREATE TABLE IF NOT EXISTS deliveries(
 
 ''')
     
-sqlite3.connect()
+sqlite3.connect.connect()

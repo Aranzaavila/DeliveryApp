@@ -4,9 +4,5 @@ class Client:
         self.name= name
         self.address= address
     
-    def update_info(self, name=None, address=None):
-        if name:
-            self.name= name
-
-        if address:
-            self.address= address
+    def __str__(self):
+        return f'{self.name} - ({self.address})'

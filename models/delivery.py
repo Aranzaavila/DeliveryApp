@@ -13,3 +13,7 @@ class Delivery:
             self.status= new_status
         else:
             print("Invallid status")
+
+
+    def __str__(self):
+        return f'Delivery #{self.delivery_id} to {self.client.name} / Status: {self.status} / Fee: ${self.fee} '
