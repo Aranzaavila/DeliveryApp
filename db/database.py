@@ -7,37 +7,45 @@ def connections(db_file):
 def tables(conn):
     cursor = conn.cursor()
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS freelancers (id INTEGER PRIMARY KEY,
-                   name TEXT NOT NULL,
-                   email YEXY NOT NULL
-                   )
+    CREATE TABLE IF NOT EXISTS freelancers (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL
+        )
 
-   ''' )
+    ''' )
     
     cursor.execute(''' 
-CREATE TABLE IF NOT EXISTS clients ( id INTEGER PRIMARY KEY,
-                   name TEXT NOT NULL,
-                   address TEXT NOT NULL
-                   )
+    CREATE TABLE IF NOT EXISTS clients ( id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    address TEXT NOT NULL
+    )
 
-''' )
+    ''' )
     
 
     cursor.execute('''
-CREATE TABLE IF NOT EXISTS deliveries(
-                   id INTEGER PRIMARY KEY,
-                   client_id INTEGER,
-                   pickup_address TEXT,
-                   dropoff_address TEXT,
-                   status TEXT,
-                   fee REAL,
-                   FOREIGN KEY (client_id) REFERENCES clients (id),
-                   FOREIGN KEY (freelancer_id) REFERENCES freelancers (id)
+    CREATE TABLE IF NOT EXISTS deliveries(
+        id INTEGER PRIMARY KEY,
+        client_id INTEGER,
+        freelancer_id INTEGER,
+        pickup_address TEXT,
+        dropoff_address TEXT,
+        status TEXT,
+        fee REAL,
+        FOREIGN KEY (client_id) REFERENCES clients (id),
+        FOREIGN KEY (freelancer_id) REFERENCES freelancers (id)
 
                    
-                   )
+    )
 
 
-''')
+    ''')
+def main():
+    conn= connections('your_database.db')
+    tables(conn)
+    conn.close()
+
+if __name__=="__main__":
+    main()
     
-sqlite3.connect.connect()
