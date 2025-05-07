@@ -8,17 +8,19 @@ def tables(conn):
     cursor = conn.cursor()
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS freelancers (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL
+        freelancer_id INTEGER PRIMARY KEY,
+        user_id INTEGER,
+        name TEXT ,
+        email TEXT 
         )
 
     ''' )
     
     cursor.execute(''' 
-    CREATE TABLE IF NOT EXISTS clients ( id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    address TEXT NOT NULL
+    CREATE TABLE IF NOT EXISTS clients (
+     CLIENT_id INTEGER PRIMARY KEY,
+    name TEXT,
+    address TEXT 
     )
 
     ''' )
@@ -26,21 +28,22 @@ def tables(conn):
 
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS deliveries(
-        id INTEGER PRIMARY KEY,
-        client_id INTEGER,
+        delivery_id INTEGER PRIMARY KEY,
+        client_id TEXT,
         freelancer_id INTEGER,
         pickup_address TEXT,
         dropoff_address TEXT,
         status TEXT,
         fee REAL,
-        FOREIGN KEY (client_id) REFERENCES clients (id),
-        FOREIGN KEY (freelancer_id) REFERENCES freelancers (id)
+        FOREIGN KEY (client_id) REFERENCES clients (client_id),
+        FOREIGN KEY (freelancer_id) REFERENCES freelancers (freelancer_id)
 
                    
     )
 
 
     ''')
+    
 def main():
     conn= connections('your_database.db')
     tables(conn)

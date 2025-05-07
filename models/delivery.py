@@ -12,7 +12,7 @@ class Delivery:
         if new_status in ["PENDING", "IN TRANSIT", "DELIVERED", "CANCELLED"]:
             self.status= new_status
         else:
-            print("Invallid status")
+            print("Invalid status")
 
 
     def __str__(self):

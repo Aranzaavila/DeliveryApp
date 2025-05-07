@@ -9,36 +9,44 @@ import sqlite3
 
 def save_to_db(conn, freelancer):
     cursor = conn.cursor()
-
     clients_saved=set()
+
     for delivery in freelancer.deliveries:
-            cursor.execute(""" INSERT OR REPLACE INTO deliveries (delivery_id, client_id,freelancer_id, pickup_address, dropoff, fee, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (delivery.delivery.id, delivery.client.client.id, delivery.freelancer.freelancer_id,
+        cursor.execute(""" 
+                INSERT OR REPLACE INTO deliveries (delivery_id, client_id,freelancer_id, pickup_address, dropoff, fee, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (delivery.delivery_id, delivery.client.client_id, delivery.freelancer.freelancer_id,
              delivery.pickup_address, delivery.dropoff, delivery.fee, delivery.status))
     
-            if delivery.client.client_id not in clients_saved: 
-                cursor.execute(""" INSERT OR REPLACE INTO clients (client_id, name, address) VALUES (?, ?, ?)
+        if delivery.client.client_id not in clients_saved: 
+            cursor.execute(""" 
+            INSERT OR REPLACE INTO clients (client_id, name, address) VALUES (?, ?, ?)
         """, (delivery.client.client_id, delivery.client.name, delivery.client.address))
 
-    cursor.execute( """ INSERT OR REPLACE INTO freelancers (freelancer_id, user_id, name, email) VALUES (?, ?, ?, ?)
+    cursor.execute( """ 
+        INSERT OR REPLACE INTO freelancers (freelancer_id, user_id, name, email) VALUES (?, ?, ?, ?)
         """, (freelancer.freelancer_id, freelancer.user_id, freelancer.name, freelancer.email))
     conn.commit()
 
 def load_from_db(conn, freelancer_id):
     cursor=conn.cursor()
-    cursor.execute("SELECT * FROM deliveries WHERE freelancer_id =?", (freelancer_id,))
+
+    cursor.execute("SELECT * FROM freelancers WHERE freelancer_id = ?", (freelancer_id,))
     row= cursor.fetchone()
+
     if row:
         freelancer= Freelancer(user_id=row[1], name=row[2], email= row[3], freelancer_id=row[0])
-        cursor.execute("SELECT * FROM deliverires WHERE freelancer_id = ?", (freelancer_id, ))
+
+        cursor.execute("SELECT * FROM deliveries WHERE freelancer_id = ?", (freelancer_id, ))
         deliveries= cursor.fetchall()
+
         for d in deliveries:
-            cursor.execute("SELECT * FROM clients WHERE client_id = ?", (d[1],))
+            cursor.execute("SELECT * FROM clients WHERE client_id = ?", (d[1], ))
             c =cursor.fetchone()
-            client= Client(client_id=c[0], name=c[1], address= c[2])
-            delivery= Delivery(delivery_id=d[0], client=client, freelancer=freelancer, pickup_address=d[3], dropoff=d[4], fee=d[5], status= d[6])
-            freelancer.add_delivery(delivery)
+            if c:
+                client= Client(client_id=c[0], name=c[1], address= c[2])
+                delivery= Delivery(delivery_id=d[0], client=client, freelancer=freelancer, pickup_address=d[3], dropoff=d[4], fee=d[5], status= d[6])
+                freelancer.add_delivery(delivery)
         return freelancer
     return None
 
@@ -60,23 +68,38 @@ def create_delivery():
     messagebox.showinfo("Success", "Delivery created. ")
 
 def update_status():
+    global freelancer 
+    if not freelancer.deliveries:
+        messagebox.shoeinfo("Info", "No deliveries to update")
+        return
+    
     ids=[str(d.delivery_id) for d in freelancer.deliveries]
     d_id= simpledialog.askstring("Update", f"Delivery ID to update({','.join(ids)}):")
     new_status= simpledialog.askstring("Update", "New status (e.g. DELIVERED):")
+    
     for d in freelancer.deliveries:  
         if str(d.delivery_id)== d_id:
             d.update_status(new_status)
             messagebox.showinfo("Updated", "Delivery status updated")
             return
-        messagebox.showerror("Error", "Delivry ID not found")
+    messagebox.showerror("Error", "Delivry ID not found")
+
+
 
 def view_deliveries():
+    global freelancer
+    if not freelancer.deliveries:
+        messagebox.shoeinfo("Deliveries", "No deliveries found")
+        return
+    
     output= "\n" .join([f"ID: {d.delivery_id}, Client: {d.client.name}, Status: {d.status}" for d in freelancer.deliveries])
-    messagebox.showinfo("Deliveries", output if output else "No deliveriesfound")
+    messagebox.showinfo("Deliveries", output)
+
+
 
 def show_invoice():
     invoice= freelancer.calculate_invoice()
-    messagebox.showinfo("Invoice", f"Total invoice: ${invoice}")
+    messagebox.showinfo("Invoice", f"Total invoice: ${invoice:.2f}")
 
 def exit_app():
     save_to_db(conn, freelancer)
@@ -95,6 +118,9 @@ def login():
         email= simpledialog.askstring("New Freelancer", "Email: ")
         freelancer= Freelancer(user_id=100 + fid, name=name, email=email, freelancer_id=fid)
         messagebox.showinfo("Account Created", f"Welcome, {name}!")
+        login_frame.pack_forget()
+        dashboard_frame.pack()
+        
 
 
 conn= connections('deliveries.db')
