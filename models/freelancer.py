@@ -14,5 +14,5 @@ class Freelancer(User):
         for delivery in self.deliveries:
             print(f"Delivery {delivery.delivery_id}: {delivery.status}")
     
-    def calculate_revenue(self):
+    def calculate_invoice(self):
         return sum(delivery.fee for delivery in self.deliveries if delivery.status == "DELIVERED")
