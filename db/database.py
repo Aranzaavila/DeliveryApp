@@ -12,10 +12,7 @@ def connections(db_file):
 def tables(conn):
     cursor = conn.cursor()
     
-    cursor.execute("DROP TABLE IF EXISTS deliveries")
-    cursor.execute("DROP TABLE IF EXISTS clients")
-    cursor.execute("DROP TABLE IF EXISTS freelancers")
-
+  
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS freelancers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -130,9 +130,12 @@ class DeliveryApp(ctk.CTk):
 
         def submit():
             vals = {k: e.get().strip() for k, e in entries.items()}
+            print("DEBUG: Form values submitted:", vals)  
+
             if not all(vals.values()):
                 messagebox.showerror("Error", "All fields are required.")
                 return
+
             try:
                 fee = float(vals["Fee"])
             except ValueError:
@@ -141,7 +144,19 @@ class DeliveryApp(ctk.CTk):
 
             client = Client(vals["Client Name"], vals["Pickup Address"])
             insert_client(self.conn, client)
-            delivery = Delivery(client.name, self.freelancer.name, vals["Pickup Address"], vals["Dropoff Address"], vals["Status"], fee, vals["Delivery Date"], vals["Delivery Time"])
+
+            delivery = Delivery(
+                client.name,
+                self.freelancer.name,
+                vals["Pickup Address"],
+                vals["Dropoff Address"],
+                vals["Status"],
+                fee,
+                vals["Delivery Date"],
+                vals["Delivery Time"]
+            )
+            print("DEBUG: Delivery object created:", delivery.__dict__)
+
             insert_delivery(self.conn, delivery)
             self.freelancer.add_delivery(delivery)
             messagebox.showinfo("Success", "Delivery successfully created.")
@@ -149,24 +164,61 @@ class DeliveryApp(ctk.CTk):
 
         ctk.CTkButton(form, text="Create Delivery", command=submit).pack(pady=15)
 
+    
+
     def _show_deliveries(self):
-        ctk.CTkLabel(self.content_frame, text="Deliveries", font=ctk.CTkFont(size=18, weight="bold")).pack(anchor='w', pady=(0, 10))
+    
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
 
+        title = ctk.CTkLabel(self.content_frame, text="My Deliveries", font=("Helvetica", 20, "bold"))
+        title.pack(pady=10)
+
+        table_frame = ctk.CTkScrollableFrame(self.content_frame, corner_radius=10)
+        table_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+        headers = ["Client", "Pickup", "Dropoff", "Status", "Fee", "Date", "Time"]
+        for col, text in enumerate(headers):
+            label = ctk.CTkLabel(
+            table_frame,
+            text=text,
+            font=("Helvetica", 14, "bold"),
+            text_color="white",
+            fg_color="#3b3b3b",
+            corner_radius=6,
+            padx=10,
+            pady=5
+        )
+        label.grid(row=0, column=col, padx=5, pady=5, sticky="nsew")
+
+    
         cursor = self.conn.cursor()
-        cursor.execute("SELECT id, client_name, pickup_address, dropoff_address, status, fee, delivery_date, delivery_time FROM deliveries WHERE freelancer_name = ?", (self.freelancer.name,))
-        rows = cursor.fetchall()
+        cursor.execute(
+        "SELECT client_name, pickup_address, dropoff_address, status, fee, delivery_date, delivery_time "
+        "FROM deliveries WHERE freelancer_name = ?",
+        (self.freelancer.name,)
+    )
+        deliveries = cursor.fetchall()
 
-        if not rows:
-            ctk.CTkLabel(self.content_frame, text="No deliveries yet.").pack(pady=20)
-            return
+        for i, delivery in enumerate(deliveries, start=1):
+            bg_color = "#f5f5f5" if i % 2 == 0 else "#e0e0e0"
+            for j, value in enumerate(delivery):
+                cell = ctk.CTkLabel(
+                table_frame,
+                text=str(value),
+                font=("Helvetica", 12),
+                fg_color=bg_color,
+                text_color="#000000",
+                corner_radius=4,
+                padx=8,
+                pady=4
+            )
+            cell.grid(row=i, column=j, padx=4, pady=2, sticky="nsew")
 
-        for row in rows:
-            card = ctk.CTkFrame(self.content_frame, fg_color='white')
-            card.pack(fill='x', pady=5, padx=5)
-            details = (f"ID: {row[0]} | Client: {row[1]} | Pickup: {row[2]} | Dropoff: {row[3]} | Status: {row[4]} | "
-                       f"Fee: ${row[5]} | Date: {row[6]} | Time: {row[7]}")
-            ctk.CTkLabel(card, text=details, wraplength=700, justify='left').pack(side='left', padx=10, pady=5)
-            ctk.CTkButton(card, text="Update Status", width=120, command=lambda cn=row[1], pu=row[2]: self._update_status_dialog(cn, pu)).pack(side='right', padx=10)
+    
+        for col in range(len(headers)):
+            table_frame.grid_columnconfigure(col, weight=1)
+
 
     def _update_status_dialog(self, client_name, pickup_address):
         top = ctk.CTkToplevel(self)
