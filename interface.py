@@ -69,8 +69,15 @@ class DeliveryApp(ctk.CTk):
             status_label = ctk.CTkLabel(card, text=f"🔶 Status: {delivery.status}", text_color=status_color)
             status_label.pack(anchor="w", padx=10, pady=(0, 5))
 
-            mark_completed_button = ctk.CTkButton(card, text="Mark as Completed", width=150, command=lambda d=delivery: self._mark_completed(d.id))
+            mark_completed_button = ctk.CTkButton(card, text="Mark as Completed", width=150)
             mark_completed_button.pack(anchor="e", padx=10, pady=5)
+
+            if delivery.status.lower() == "completed":
+                mark_completed_button.configure(state="disabled", text="Completed")
+            else:
+                mark_completed_button.configure(
+                    command=lambda d_id=delivery.id, btn=mark_completed_button: self._mark_completed(d_id, btn)
+                )
 
     def show_delivery_detail_popup(self, delivery):
         client = Client.get_by_id(self.conn, delivery.client_id)
@@ -189,25 +196,51 @@ class DeliveryApp(ctk.CTk):
 
             data = [client_name, description, status, f"${fee:.2f}", f"{deadline_str} {urgency_icon}"]
             
-            for j, value in enumerate(data):
-                label = ctk.CTkLabel(table_frame, text=str(value), font=("Helvetica", 12),
-                                     fg_color=bg_color, text_color="#000000", corner_radius=4, padx=8, pady=4)
-                label.grid(row=i, column=j, padx=4, pady=2, sticky="nsew")
+            # Dentro del loop principal del método _show_deliveries:
+            for i, delivery in enumerate(deliveries, start=1):
+                delivery_id, client_id, description, status, fee, deadline_str = delivery
+                client = Client.get_by_id(self.conn, client_id)
+                client_name = client.name if client else "Unknown"
 
-            action_btn = ctk.CTkButton(table_frame, text="Mark Completed",
-                                       command=lambda d_id=delivery_id: self._mark_completed(d_id),
-                                       width=120, height=28)
-            action_btn.grid(row=i, column=len(data), padx=5, pady=5)
+                deadline_dt = datetime.datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
+                time_diff = deadline_dt - now
+                urgency_icon = "🔥" if time_diff.total_seconds() < 86400 else ""
 
-        for col in range(len(headers)):
-            table_frame.grid_columnconfigure(col, weight=1)
+                if time_diff.total_seconds() < 86400:
+                    bg_color = "#F04040"  # urgent
+                elif time_diff.total_seconds() < 3 * 86400:
+                    bg_color = "#ECD928"  # moderate
+                else:
+                    bg_color = "#1FF331"  # plenty of time
 
-    def _mark_completed(self, delivery_id):
+                data = [
+                    client_name,
+                    description,
+                    status,
+                    f"${fee:.2f}",
+                    f"{deadline_str} {urgency_icon}"
+                ]
+
+                for j, value in enumerate(data):
+                    label = ctk.CTkLabel(
+                        table_frame,
+                        text=str(value),
+                        font=("Helvetica", 12),
+                        fg_color=bg_color,
+                        text_color="#000000",
+                        corner_radius=4,
+                        padx=8,
+                        pady=4
+                    )
+                    label.grid(row=i, column=j, padx=4, pady=2, sticky="nsew")
+
+                
+
+    def _mark_completed(self, delivery_id, button):
         cursor = self.conn.cursor()
-        cursor.execute("UPDATE deliveries SET status = 'COMPLETED' WHERE id = ?", (delivery_id,))
+        cursor.execute("UPDATE deliveries SET status = 'Completed' WHERE id = ?", (delivery_id,))
         self.conn.commit()
-        messagebox.showinfo("Updated", "Delivery marked as completed.")
-        self._show_deliveries()
+        button.configure(state="disabled", text="Completed")
 
 
 if __name__ == "__main__":
