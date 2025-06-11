@@ -33,8 +33,6 @@ def tables(conn):
             description TEXT NOT NULL,
             status TEXT NOT NULL,
             fee REAL NOT NULL,
-            delivery_date TEXT NOT NULL,
-            delivery_time TEXT NOT NULL,
             deadline TEXT NOT NULL,
             FOREIGN KEY (client_id) REFERENCES clients(id)
         )
@@ -56,28 +54,18 @@ def insert_freelancer(conn, freelancer):
 
 def insert_delivery(conn, delivery):
     cursor = conn.cursor()
-
-    # Validate that the client exists
-    cursor.execute("SELECT id FROM clients WHERE id = ?", (delivery.client_id,))
-    result = cursor.fetchone()
-
-    if not result:
-        raise ValueError(f"Client with id {delivery.client_id} does not exist.")
-
     cursor.execute("""
-        INSERT INTO deliveries (client_id, description, status, fee, delivery_date, delivery_time, deadline)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO deliveries (client_id, description, status, fee, deadline)
+        VALUES (?, ?, ?, ?, ?)
     """, (
         delivery.client_id,
         delivery.description,
         delivery.status,
         delivery.fee,
-        delivery.delivery_date,
-        delivery.delivery_time,
         delivery.deadline
     ))
-
     conn.commit()
     return cursor.lastrowid
+
 
     

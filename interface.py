@@ -69,9 +69,6 @@ class DeliveryApp(ctk.CTk):
             status_label = ctk.CTkLabel(card, text=f"🔶 Status: {delivery.status}", text_color=status_color)
             status_label.pack(anchor="w", padx=10, pady=(0, 5))
 
-            details_button = ctk.CTkButton(card, text="View Details", width=100, command=lambda d=delivery: self.show_delivery_detail_popup(d))
-            details_button.pack(anchor="e", padx=10, pady=5)
-
             mark_completed_button = ctk.CTkButton(card, text="Mark as Completed", width=150, command=lambda d=delivery: self._mark_completed(d.id))
             mark_completed_button.pack(anchor="e", padx=10, pady=5)
 
@@ -105,18 +102,17 @@ class DeliveryApp(ctk.CTk):
         form.pack(fill='x', padx=10)
 
         entries = {}
-        fields = ["Client Name", "Description", "Status", "Fee", "Delivery Date", "Delivery Time", "Deadline"]
+        fields = ["Client Name", "Description", "Status", "Fee", "Deadline"]
         for field in fields:
             row = ctk.CTkFrame(form, fg_color="#444444")
             row.pack(fill='x', pady=7)
-            ctk.CTkLabel(row, text=field, text_color="white", width=130, anchor='w').pack(side='left')
+            ctk.CTkLabel(row, text=field, text_color="white", width=180, anchor='w').pack(side='left')
             entry = ctk.CTkEntry(row)
             entry.pack(side='right', fill='x', expand=True)
             entries[field] = entry
 
         now = datetime.datetime.now()
-        entries["Delivery Date"].insert(0, now.strftime('%Y-%m-%d'))
-        entries["Delivery Time"].insert(0, now.strftime('%H:%M'))
+        entries["Deadline"].insert(0, now.strftime('%Y-%m-%d %H:%M'))
 
         def submit():
             vals = {k: e.get().strip() for k, e in entries.items()}
@@ -129,6 +125,12 @@ class DeliveryApp(ctk.CTk):
                 messagebox.showerror("Error", "Fee must be a number.")
                 return
 
+            try:
+                datetime.datetime.strptime(vals["Deadline"], "%Y-%m-%d %H:%M")
+            except ValueError:
+                messagebox.showerror("Error", "Deadline format must be YYYY-MM-DD HH:MM.")
+                return
+
             client = Client(vals["Client Name"], "")
             insert_client(self.conn, client)
             client_id = Client.get_id_by_name(self.conn, client.name)
@@ -139,13 +141,10 @@ class DeliveryApp(ctk.CTk):
                 vals["Description"],
                 vals["Status"],
                 fee,
-                vals["Delivery Date"],
-                vals["Delivery Time"],
                 vals["Deadline"]
             )
 
             insert_delivery(self.conn, delivery)
-            self.freelancer.add_delivery(delivery)
             messagebox.showinfo("Success", "Delivery successfully created.")
             self._switch_tab("Deliveries")
 
@@ -160,24 +159,36 @@ class DeliveryApp(ctk.CTk):
         table_frame = ctk.CTkScrollableFrame(self.content_frame, corner_radius=10)
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
-        headers = ["Client", "Description", "Status", "Fee", "Date Created", "Time Created", "Deadline"]
+        headers = ["Client", "Description", "Status", "Fee", "Deadline"]
         for col, text in enumerate(headers):
             label = ctk.CTkLabel(table_frame, text=text, font=("Helvetica", 14, "bold"),
                                  text_color="white", fg_color="#3b3b3b", corner_radius=6, padx=10, pady=5)
             label.grid(row=0, column=col, padx=5, pady=5, sticky="nsew")
 
         cursor = self.conn.cursor()
-        cursor.execute("SELECT id, client_id, description, status, fee, delivery_date, delivery_time, deadline FROM deliveries")
+        cursor.execute("SELECT id, client_id, description, status, fee,  deadline FROM deliveries ORDER BY deadline ASC")
         deliveries = cursor.fetchall()
 
+        now= datetime.datetime.now()
+
         for i, delivery in enumerate(deliveries, start=1):
-            delivery_id, client_id, description, status, fee, delivery_date, delivery_time, deadline = delivery
+            delivery_id, client_id, description, status, fee, deadline_str = delivery
             client = Client.get_by_id(self.conn, client_id)
             client_name = client.name if client else "Unknown"
 
-            data = [client_name, description, status, fee, delivery_date, delivery_time, deadline]
-            bg_color = "#f5f5f5" if i % 2 == 0 else "#e0e0e0"
+            deadline_dt= datetime.datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
+            time_diff= deadline_dt - now
+            urgency_icon= "🔥" if time_diff.total_seconds() < 86400 else ""
 
+            if time_diff.total_seconds() < 86400:
+                bg_color= "#F04040" #urgent
+            elif time_diff.total_seconds() < 3 * 86400:
+                bg_color= "#ECD928" #moderate
+            else:
+                bg_color= "#1FF331" #there is still time
+
+            data = [client_name, description, status, f"${fee:.2f}", f"{deadline_str} {urgency_icon}"]
+            
             for j, value in enumerate(data):
                 label = ctk.CTkLabel(table_frame, text=str(value), font=("Helvetica", 12),
                                      fg_color=bg_color, text_color="#000000", corner_radius=4, padx=8, pady=4)
