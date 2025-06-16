@@ -5,15 +5,14 @@ from models.delivery import Delivery
 
 class Database:
     def __init__(self, db_file):
-        self.conn= sqlite3.connect(db_file)
-        self._tables()
+        self.conn = sqlite3.connect(db_file)
+        self._create_tables()
         self._add_completed_date_column()
 
-    def _tables(self):
+    def _create_tables(self):
         cursor = self.conn.cursor()
-    
 
-        # client table
+        # Clients table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS clients (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,7 +20,7 @@ class Database:
             )
         """)
 
-        # freelancers table
+        # Freelancers table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS freelancers (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,7 +28,7 @@ class Database:
             )
         """)
 
-        # delivery table
+        # Deliveries table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS deliveries (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,7 +43,7 @@ class Database:
         """)
 
         self.conn.commit()
-    
+
     def _add_completed_date_column(self):
         cursor = self.conn.cursor()
         # Check if column already exists
@@ -57,11 +56,9 @@ class Database:
             """)
             self.conn.commit()
 
-
-
     def insert_client(self, client):
         cursor = self.conn.cursor()
-        cursor.execute("INSERT INTO clients (name) VALUES (?)", (client.name,))  # <-- comma!
+        cursor.execute("INSERT INTO clients (name) VALUES (?)", (client.name,))
         self.conn.commit()
         return cursor.lastrowid
 
@@ -70,8 +67,6 @@ class Database:
         cursor.execute("INSERT INTO freelancers (name) VALUES (?)", (freelancer.name,))
         self.conn.commit()
         return cursor.lastrowid
-    
-    # Add these methods to your Database class
 
     def count_deliveries(self, completed=None):
         cursor = self.conn.cursor()
@@ -125,7 +120,6 @@ class Database:
         cursor.execute("SELECT id, name FROM clients WHERE id=?", (client_id,))
         row = cursor.fetchone()
         if row:
-            from models.client import Client
             return Client(id=row[0], name=row[1])
         return None
 

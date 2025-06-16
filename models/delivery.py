@@ -3,7 +3,7 @@ class Delivery:
         self.id = id
         self.client_id = client_id
         self.description = description
-        self.completed = completed  # 0 or 1, or use bool(completed)
+        self.completed = completed  
         self.fee = fee
         self.deadline = deadline
         self.completed_date = completed_date

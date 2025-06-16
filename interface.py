@@ -6,9 +6,9 @@ from db.database import Database
 import ctypes
 import sys
 
-ctk.set_appearance_mode("dark")  
-ctk.set_default_color_theme("dark-blue")  
-ctk.deactivate_automatic_dpi_awareness()  # Para evitar conflicto con el escalado automático de Windows
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("dark-blue")
+ctk.deactivate_automatic_dpi_awareness()  # To avoid conflict with Windows auto scaling
 
 if sys.platform == "win32":
     try:
@@ -22,7 +22,6 @@ class DeliveryApp(ctk.CTk):
         super().__init__()
 
         self.db_file = db_file
-        
 
         self.title("Delivery Management App")
         self.geometry("1000x600")
@@ -30,14 +29,14 @@ class DeliveryApp(ctk.CTk):
 
         self.db = Database(self.db_file)
 
-        # Variables para seleccionar delivery
+        # Variables to select delivery
         self.selected_delivery_id = None
 
-        # Configuración del grid principal
+        # Main grid configuration
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # Barra lateral (Sidebar)
+        # Sidebar
         self.sidebar = ctk.CTkFrame(self, width=200, corner_radius=0)
         self.sidebar.grid(row=0, column=0, sticky="ns")
         self.sidebar.grid_rowconfigure(5, weight=1)
@@ -45,7 +44,7 @@ class DeliveryApp(ctk.CTk):
         self.logo_label = ctk.CTkLabel(self.sidebar, text="DeliveryApp", font=ctk.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, pady=(20, 10), padx=20)
 
-        # Botones sidebar
+        # Sidebar buttons
         self.btn_dashboard = ctk.CTkButton(self.sidebar, text="Dashboard", command=self.show_dashboard)
         self.btn_dashboard.grid(row=1, column=0, sticky="ew", padx=20, pady=10)
 
@@ -58,11 +57,11 @@ class DeliveryApp(ctk.CTk):
         self.btn_view_invoices = ctk.CTkButton(self.sidebar, text="Invoice", command=self.show_view_invoices)
         self.btn_view_invoices.grid(row=4, column=0, sticky="ew", padx=20, pady=10)
 
-        # Frame principal para contenido
+        # Main content frame
         self.main_frame = ctk.CTkFrame(self)
         self.main_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
 
-        # Inicialmente mostramos el dashboard
+        # Show dashboard by default
         self.show_dashboard()
 
     def clear_main_frame(self):
@@ -76,7 +75,7 @@ class DeliveryApp(ctk.CTk):
         label = ctk.CTkLabel(self.main_frame, text="Dashboard", font=ctk.CTkFont(size=24, weight="bold"))
         label.pack(pady=10)
 
-        # Estadísticas básicas
+        # Basic statistics
         total_deliveries = self.db.count_deliveries()
         completed_deliveries = self.db.count_deliveries(completed=True)
         pending_deliveries = total_deliveries - completed_deliveries
@@ -95,26 +94,23 @@ class DeliveryApp(ctk.CTk):
         label = ctk.CTkLabel(self.main_frame, text="Create New Delivery", font=ctk.CTkFont(size=24, weight="bold"))
         label.pack(pady=10)
 
-        
-        frame_form = ctk.CTkFrame(self.main_frame)
-        frame_form.pack(pady=10, padx=10, fill="x")
+        form_frame = ctk.CTkFrame(self.main_frame)
+        form_frame.pack(pady=10, padx=10, fill="x")
 
         # Client (text entry)
-        tk.Label(frame_form, text="Client:", bg="#2b2b2b", fg="white").grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        self.client_entry = ctk.CTkEntry(frame_form, placeholder_text="Client name")
+        tk.Label(form_frame, text="Client:", bg="#2b2b2b", fg="white").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.client_entry = ctk.CTkEntry(form_frame, placeholder_text="Client name")
         self.client_entry.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
-        frame_form.grid_columnconfigure(1, weight=1)
-        
-        tk.Label(frame_form, text="Description:", bg="#2b2b2b", fg="white").grid(row=1, column=0, sticky="w", padx=5, pady=5)
-        self.desc_entry = ctk.CTkEntry(frame_form)
+        form_frame.grid_columnconfigure(1, weight=1)
+
+        tk.Label(form_frame, text="Description:", bg="#2b2b2b", fg="white").grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.desc_entry = ctk.CTkEntry(form_frame)
         self.desc_entry.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
 
-       
-        tk.Label(frame_form, text="Deadline (YYYY-MM-DD):", bg="#2b2b2b", fg="white").grid(row=2, column=0, sticky="w", padx=5, pady=5)
-        self.deadline_entry = ctk.CTkEntry(frame_form)
+        tk.Label(form_frame, text="Deadline (YYYY-MM-DD):", bg="#2b2b2b", fg="white").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.deadline_entry = ctk.CTkEntry(form_frame)
         self.deadline_entry.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
 
-        
         btn_create = ctk.CTkButton(self.main_frame, text="Create Delivery", command=self.create_delivery)
         btn_create.pack(pady=10)
 
@@ -148,7 +144,7 @@ class DeliveryApp(ctk.CTk):
             client = Client(id=None, name=client_name)
             client.id = self.db.insert_client(client)
 
-        # Crear nuevo delivery
+        # Create new delivery
         new_delivery = Delivery(
             id=None,
             client_id=client.id,
@@ -169,52 +165,52 @@ class DeliveryApp(ctk.CTk):
         label = ctk.CTkLabel(self.main_frame, text="List of Deliveries", font=ctk.CTkFont(size=24, weight="bold"))
         label.pack(pady=10)
 
-        # Lista de deliveries con scroll
-        frame_list = ctk.CTkScrollableFrame(self.main_frame, height=350)
-        frame_list.pack(fill="both", expand=True, padx=10, pady=10)
+        # Delivery list with scroll
+        list_frame = ctk.CTkScrollableFrame(self.main_frame, height=350)
+        list_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         deliveries = self.db.get_all_deliveries()
         if not deliveries:
-            empty_label = ctk.CTkLabel(frame_list, text="No deliveries")
+            empty_label = ctk.CTkLabel(list_frame, text="No deliveries")
             empty_label.pack(pady=20)
             return
 
         for delivery in deliveries:
-            frame_item = ctk.CTkFrame(frame_list, height=60)
-            frame_item.pack(fill="x", pady=5, padx=5)
+            item_frame = ctk.CTkFrame(list_frame, height=60)
+            item_frame.pack(fill="x", pady=5, padx=5)
 
-            # Estado y color
-            estado_text = "Completed" if delivery.completed else "Pending"
-            estado_color = "green" if delivery.completed else "red"
-            estado_label = ctk.CTkLabel(frame_item, text=estado_text, text_color=estado_color, width=80)
-            estado_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+            # Status and color
+            status_text = "Completed" if delivery.completed else "Pending"
+            status_color = "green" if delivery.completed else "red"
+            status_label = ctk.CTkLabel(item_frame, text=status_text, text_color=status_color, width=80)
+            status_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
-            # Descripción y cliente
+            # Description and client
             client = self.db.get_client_by_id(delivery.client_id)
             client_name = client.name if client else "Unknown"
             desc_text = f"{delivery.description} (Client: {client_name})"
-            desc_label = ctk.CTkLabel(frame_item, text=desc_text)
+            desc_label = ctk.CTkLabel(item_frame, text=desc_text)
             desc_label.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
-            # Fecha límite
-            deadline_label = ctk.CTkLabel(frame_item, text=f"Deadline: {delivery.deadline}")
+            # Deadline
+            deadline_label = ctk.CTkLabel(item_frame, text=f"Deadline: {delivery.deadline}")
             deadline_label.grid(row=1, column=1, padx=10, sticky="w")
 
-            # Botón detalles
-            btn_details = ctk.CTkButton(frame_item, text="Details",
+            # Details button
+            btn_details = ctk.CTkButton(item_frame, text="Details",
                                         command=lambda d=delivery: self._show_delivery_details(d))
             btn_details.grid(row=0, column=2, padx=10, pady=10, sticky="e")
 
-            # Botón para marcar completado (si no está completado)
+            # Mark as completed button (if not already)
             if not delivery.completed:
-                btn_complete = ctk.CTkButton(frame_item, text="Completed",
+                btn_complete = ctk.CTkButton(item_frame, text="Completed",
                                              command=lambda d=delivery: self.mark_as_completed(d))
                 btn_complete.grid(row=1, column=2, padx=10, pady=5, sticky="e")
 
-            frame_item.grid_columnconfigure(1, weight=1)
+            item_frame.grid_columnconfigure(1, weight=1)
 
     def _show_delivery_details(self, delivery: Delivery):
-        # Ventana emergente con detalles del delivery
+        # Popup window with delivery details
         detail_win = ctk.CTkToplevel(self)
         detail_win.title(f"Details Delivery ID {delivery.id}")
         detail_win.geometry("400x300")
@@ -234,7 +230,7 @@ class DeliveryApp(ctk.CTk):
         btn_close.pack(pady=10)
 
     def mark_as_completed(self, delivery: Delivery):
-        if messagebox.askyesno("Confirm", "¿Mark as complete?"):
+        if messagebox.askyesno("Confirm", "Mark as completed?"):
             self.db.mark_delivery_completed(delivery.id)
             messagebox.showinfo("Success", "Delivery is completed")
             self.show_view_deliveries()
@@ -245,9 +241,7 @@ class DeliveryApp(ctk.CTk):
         label = ctk.CTkLabel(self.main_frame, text="Invoice", font=ctk.CTkFont(size=24, weight="bold"))
         label.pack(pady=10)
 
-        # Aquí puedes implementar la lógica para mostrar facturas, exportarlas, etc.
-        # Por ahora, mostramos mensaje placeholder.
-
+        # Placeholder for invoice feature
         placeholder = ctk.CTkLabel(self.main_frame, text="Invoice feature in development")
         placeholder.pack(pady=20)
 
@@ -255,3 +249,4 @@ class DeliveryApp(ctk.CTk):
 if __name__ == "__main__":
     app = DeliveryApp()
     app.mainloop()
+
