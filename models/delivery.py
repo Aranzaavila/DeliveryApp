@@ -1,17 +1,18 @@
 class Delivery:
-    def __init__(self, id, client_id, description, status, fee, deadline):
+    def __init__(self, id, client_id, description, completed, fee, deadline, completed_date=None):
         self.id = id
         self.client_id = client_id
         self.description = description
-        self.status = status
+        self.completed = completed  # 0 or 1, or use bool(completed)
         self.fee = fee
         self.deadline = deadline
+        self.completed_date = completed_date
 
     @staticmethod
     def get_all(conn):
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT id, client_id, description, status, fee,  deadline
+            SELECT id, client_id, description, completed, fee, deadline, completed_date
             FROM deliveries 
             ORDER BY deadline ASC
         """)
@@ -22,7 +23,7 @@ class Delivery:
     def get_by_id(conn, delivery_id):
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT id, client_id, description, status, fee, deadline
+            SELECT id, client_id, description, completed, fee, deadline, completed_date
             FROM deliveries
             WHERE id = ?
         """, (delivery_id,))
@@ -31,7 +32,5 @@ class Delivery:
     
     def __repr__(self):
         return (f"Delivery(id={self.id}, client_id={self.client_id}, "
-                f"description='{self.description}', status='{self.status}', "
-                f"fee={self.fee},  deadline='{self.deadline}')")
-
-
+                f"description='{self.description}', completed={self.completed}, "
+                f"fee={self.fee}, deadline='{self.deadline}', completed_date='{self.completed_date}')")

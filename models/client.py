@@ -1,15 +1,15 @@
 class Client:
-    def __init__(self, name, email, id=None):
+    def __init__(self, name, id=None):
         self.id = id
         self.name = name
-        self.email = email
+        
 
     @staticmethod
     def get_by_id(conn, client_id):
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, email FROM clients WHERE id=?", (client_id,))
+        cursor.execute("SELECT id, name FROM clients WHERE id=?", (client_id,))
         row = cursor.fetchone()
-        return Client(row[1], row[2], row[0]) if row else None
+        return Client(row[1], row[0]) if row else None
 
     @staticmethod
     def get_id_by_name(conn, name):
@@ -19,6 +19,6 @@ class Client:
         if result:
             return result[0]
         else:
-            cursor.execute("INSERT INTO clients (name, email) VALUES (?, ?)", (name, ""))
+            cursor.execute("INSERT INTO clients (name) VALUES (?)", (name,))
             conn.commit()
             return cursor.lastrowid
