@@ -1,6 +1,7 @@
 import sqlite3
 from models.client import Client
 from models.delivery import Delivery
+from models.invoice import Invoice
 
 
 class Database:
@@ -41,7 +42,17 @@ class Database:
                 FOREIGN KEY (client_id) REFERENCES clients(id)
             )
         """)
-
+        cursor.execute("""
+                CREATE TABLE IF NOT EXISTS invoices (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    delivery_id INTEGER NOT NULL,
+                    amount REAL NOT NULL,
+                    date TEXT NOT NULL,
+                    paid INTEGER DEFAULT 0,
+                    FOREIGN KEY (delivery_id) REFERENCES deliveries(id)
+                )
+            """)
+    
         self.conn.commit()
 
     def _add_completed_date_column(self):
@@ -132,3 +143,35 @@ class Database:
             (completed_date, delivery_id)
         )
         self.conn.commit()
+
+    
+    def add_invoice(self, delivery_id, amount, date):
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "INSERT INTO invoices (delivery_id, amount, date, paid) VALUES (?, ?, ?, 0)",
+            (delivery_id, amount, date)
+        )
+        self.conn.commit()
+        return cursor.lastrowid
+
+    def get_all_invoices(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id, delivery_id, amount, date, paid FROM invoices")
+        rows = cursor.fetchall()
+        return [Invoice(*row) for row in rows]
+
+    def mark_invoice_paid(self, invoice_id):
+        cursor = self.conn.cursor()
+        cursor.execute("UPDATE invoices SET paid=1 WHERE id=?", (invoice_id,))
+        self.conn.commit()
+
+    def get_total_earnings_by_month(self):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT strftime('%Y-%m', deadline) as month, SUM(fee)
+            FROM deliveries
+            GROUP BY month
+            ORDER BY month
+        """)
+        rows = cursor.fetchall()
+        return {row[0]: row[1] for row in rows}

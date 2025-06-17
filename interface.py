@@ -5,6 +5,9 @@ from models.delivery import Delivery
 from db.database import Database
 import ctypes
 import sys
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkcalendar import DateEntry
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
@@ -69,28 +72,88 @@ class DeliveryApp(ctk.CTk):
             widget.destroy()
         self.selected_delivery_id = None
 
+    
+
+
+
     def show_dashboard(self):
         self.clear_main_frame()
+        dashboard_frame = ctk.CTkFrame(self.main_frame, fg_color="#232323")
+        dashboard_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        label = ctk.CTkLabel(self.main_frame, text="Dashboard", font=ctk.CTkFont(size=24, weight="bold"))
-        label.pack(pady=10)
+        # Dashboard title
+        title_label = ctk.CTkLabel(dashboard_frame, text="Dashboard Overview", font=ctk.CTkFont(size=20, weight="bold"))
+        title_label.pack(pady=(10, 20))
 
-        # Basic statistics
-        total_deliveries = self.db.count_deliveries()
-        completed_deliveries = self.db.count_deliveries(completed=True)
-        pending_deliveries = total_deliveries - completed_deliveries
+        # Container for side-by-side charts
+        charts_frame = ctk.CTkFrame(dashboard_frame, fg_color="#232323")
+        charts_frame.pack(pady=10, padx=10, fill="x")
 
-        stats_text = (
-            f"Total Deliveries: {total_deliveries}\n"
-            f"Completed Deliveries: {completed_deliveries}\n"
-            f"Pending Deliveries: {pending_deliveries}"
-        )
-        stats_label = ctk.CTkLabel(self.main_frame, text=stats_text, font=ctk.CTkFont(size=16))
-        stats_label.pack(pady=10)
+        # Pie chart for delivery status
+        completed = self.db.count_deliveries(completed=1)
+        pending = self.db.count_deliveries(completed=0)
+        sizes = [completed, pending]
+        labels = ['Completed', 'Pending']
+        colors = ['#00b894', '#636e72']
+
+        fig, ax = plt.subplots(figsize=(3, 3), dpi=100, facecolor="#232323")
+        if sum(sizes) == 0:
+            ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=12, color='white')
+            ax.axis('off')
+        else:
+            wedges, texts, autotexts = ax.pie(
+                sizes, labels=labels, autopct='%1.1f%%', colors=colors, startangle=90,
+                textprops={'color': 'white', 'fontsize': 10}
+            )
+            for text in texts:
+                text.set_color('white')
+            for autotext in autotexts:
+                autotext.set_color('white')
+            ax.set_title('Delivery Status', color='white', fontsize=12)
+        fig.patch.set_facecolor('#232323')
+
+        canvas = FigureCanvasTkAgg(fig, master=charts_frame)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=0, column=0, padx=(30, 60), pady=10)  # More horizontal padding
+        plt.close(fig)
+
+        # Bar chart for earnings by month
+        earnings = self.db.get_total_earnings_by_month()
+        months = list(earnings.keys())
+        totals = list(earnings.values())
+
+        fig2, ax2 = plt.subplots(figsize=(3.5, 3), dpi=100, facecolor="#232323")
+        if months and totals:
+            bars = ax2.bar(months, totals, color="#2fdaaf")
+            ax2.set_title('Earnings by Month', color='white', fontsize=12)
+            ax2.set_xlabel('Month', color='white', fontsize=10)
+            ax2.set_ylabel('Total Earnings', color='white', fontsize=10)
+            ax2.tick_params(axis='x', colors='white', labelrotation=30, labelsize=9)
+            ax2.tick_params(axis='y', colors='white', labelsize=9)
+            ax2.spines['bottom'].set_color('white')
+            ax2.spines['left'].set_color('white')
+            ax2.spines['top'].set_color('#232323')
+            ax2.spines['right'].set_color('#232323')
+            plt.subplots_adjust(bottom=0.25)  # More space for x-labels
+            for bar in bars:
+                height = bar.get_height()
+                ax2.annotate(f'{height:.2f}',
+                            xy=(bar.get_x() + bar.get_width() / 2, height),
+                            xytext=(0, 3),
+                            textcoords="offset points",
+                            ha='center', va='bottom', color='white', fontsize=8)
+        else:
+            ax2.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=12, color='white')
+            ax2.axis('off')
+        fig2.patch.set_facecolor('#232323')
+
+        canvas2 = FigureCanvasTkAgg(fig2, master=charts_frame)
+        canvas2.draw()
+        canvas2.get_tk_widget().grid(row=0, column=1, padx=(60, 30), pady=10)  # More horizontal padding
+        plt.close(fig2)
 
     def show_create_delivery(self):
         self.clear_main_frame()
-
         label = ctk.CTkLabel(self.main_frame, text="Create New Delivery", font=ctk.CTkFont(size=24, weight="bold"))
         label.pack(pady=10)
 
@@ -101,15 +164,22 @@ class DeliveryApp(ctk.CTk):
         tk.Label(form_frame, text="Client:", bg="#2b2b2b", fg="white").grid(row=0, column=0, sticky="w", padx=5, pady=5)
         self.client_entry = ctk.CTkEntry(form_frame, placeholder_text="Client name")
         self.client_entry.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
-        form_frame.grid_columnconfigure(1, weight=1)
 
+        # Description
         tk.Label(form_frame, text="Description:", bg="#2b2b2b", fg="white").grid(row=1, column=0, sticky="w", padx=5, pady=5)
-        self.desc_entry = ctk.CTkEntry(form_frame)
+        self.desc_entry = ctk.CTkEntry(form_frame, placeholder_text="Description")
         self.desc_entry.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
 
-        tk.Label(form_frame, text="Deadline (YYYY-MM-DD):", bg="#2b2b2b", fg="white").grid(row=2, column=0, sticky="w", padx=5, pady=5)
-        self.deadline_entry = ctk.CTkEntry(form_frame)
-        self.deadline_entry.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
+        # Fee (amount) entry
+        tk.Label(form_frame, text="Fee:", bg="#2b2b2b", fg="white").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.fee_entry = ctk.CTkEntry(form_frame, placeholder_text="Amount")
+        self.fee_entry.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
+
+        # Deadline
+        tk.Label(form_frame, text="Deadline (YYYY-MM-DD):", bg="#2b2b2b", fg="white").grid(row=3, column=0, sticky="w", padx=5, pady=5)
+        self.deadline_entry = DateEntry(form_frame, date_pattern="yyyy-mm-dd")
+        self.deadline_entry.grid(row=3, column=1, sticky="ew", padx=5, pady=5)
+        form_frame.grid_columnconfigure(1, weight=1)
 
         btn_create = ctk.CTkButton(self.main_frame, text="Create Delivery", command=self.create_delivery)
         btn_create.pack(pady=10)
@@ -117,7 +187,7 @@ class DeliveryApp(ctk.CTk):
     def create_delivery(self):
         client_name = self.client_entry.get().strip()
         description = self.desc_entry.get().strip()
-        deadline = self.deadline_entry.get().strip()
+        deadline = self.deadline_entry.get_date().strftime("%Y-%m-%d")
 
         if not client_name:
             messagebox.showerror("Error", "Please enter a client name.")
@@ -129,12 +199,6 @@ class DeliveryApp(ctk.CTk):
             messagebox.showerror("Error", "Please enter a deadline.")
             return
 
-        import datetime
-        try:
-            datetime.datetime.strptime(deadline, "%Y-%m-%d")
-        except ValueError:
-            messagebox.showerror("Error", "Use YYYY-MM-DD")
-            return
 
         # Check if client exists, otherwise create it
         clients = self.db.get_all_clients()
@@ -144,32 +208,59 @@ class DeliveryApp(ctk.CTk):
             client = Client(id=None, name=client_name)
             client.id = self.db.insert_client(client)
 
+        fee_text = self.fee_entry.get().strip()
+        try:
+            fee = float(fee_text)
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid number for the fee.")
+            return
+
         # Create new delivery
         new_delivery = Delivery(
             id=None,
             client_id=client.id,
             description=description,
             completed=0,
-            fee=0.0,
+            fee=fee,
             deadline=deadline,
             completed_date=None
         )
-        self.db.add_delivery(new_delivery)
-        messagebox.showinfo("Success", "Delivery created successfully")
+        delivery_id = self.db.add_delivery(new_delivery)
 
-        self.show_view_deliveries()
+        # Create invoice for this delivery
+        import datetime
+        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.db.add_invoice(delivery_id, fee, today)
+
+    
 
     def show_view_deliveries(self):
         self.clear_main_frame()
+        main_frame = ctk.CTkFrame(self.main_frame, fg_color="#232323")
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Search bar
+        search_frame = ctk.CTkFrame(main_frame, fg_color="#232323")
+        search_frame.pack(fill="x", pady=(0, 10))
+        search_entry = ctk.CTkEntry(search_frame, placeholder_text="Search by client or description")
+        search_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        search_button = ctk.CTkButton(search_frame, text="Search", command=lambda: self.filter_deliveries(search_entry.get()))
+        search_button.pack(side="left")
+        clear_button = ctk.CTkButton(search_frame, text="Clear", command=self.clear_delivery_search)
+        clear_button.pack(side="left", padx=(10, 0))
 
         label = ctk.CTkLabel(self.main_frame, text="List of Deliveries", font=ctk.CTkFont(size=24, weight="bold"))
         label.pack(pady=10)
+
+        # Get filtered or all deliveries
+        deliveries = getattr(self, "filtered_deliveries", None)
+        if deliveries is None:
+            deliveries = self.db.get_all_deliveries()
 
         # Delivery list with scroll
         list_frame = ctk.CTkScrollableFrame(self.main_frame, height=350)
         list_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        deliveries = self.db.get_all_deliveries()
         if not deliveries:
             empty_label = ctk.CTkLabel(list_frame, text="No deliveries")
             empty_label.pack(pady=20)
@@ -204,7 +295,56 @@ class DeliveryApp(ctk.CTk):
             # Mark as completed button (if not already)
             if not delivery.completed:
                 btn_complete = ctk.CTkButton(item_frame, text="Completed",
-                                             command=lambda d=delivery: self.mark_as_completed(d))
+                                            command=lambda d=delivery: self.mark_as_completed(d))
+                btn_complete.grid(row=1, column=2, padx=10, pady=5, sticky="e")
+
+            item_frame.grid_columnconfigure(1, weight=1)
+
+    def clear_delivery_search(self):
+        self.filtered_deliveries = None
+        self.show_view_deliveries()
+
+
+            # Delivery list with scroll
+        list_frame = ctk.CTkScrollableFrame(self.main_frame, height=350)
+        list_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        deliveries = self.db.get_all_deliveries()
+        if not deliveries:
+            empty_label = ctk.CTkLabel(list_frame, text="No deliveries")
+            empty_label.pack(pady=20)
+            return
+
+        for delivery in deliveries:
+            item_frame = ctk.CTkFrame(list_frame, height=60)
+            item_frame.pack(fill="x", pady=5, padx=5)
+
+                # Status and color
+            status_text = "Completed" if delivery.completed else "Pending"
+            status_color = "green" if delivery.completed else "red"
+            status_label = ctk.CTkLabel(item_frame, text=status_text, text_color=status_color, width=80)
+            status_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+
+                # Description and client
+            client = self.db.get_client_by_id(delivery.client_id)
+            client_name = client.name if client else "Unknown"
+            desc_text = f"{delivery.description} (Client: {client_name})"
+            desc_label = ctk.CTkLabel(item_frame, text=desc_text)
+            desc_label.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+
+                # Deadline
+            deadline_label = ctk.CTkLabel(item_frame, text=f"Deadline: {delivery.deadline}")
+            deadline_label.grid(row=1, column=1, padx=10, sticky="w")
+
+                # Details button
+            btn_details = ctk.CTkButton(item_frame, text="Details",
+                                            command=lambda d=delivery: self._show_delivery_details(d))
+            btn_details.grid(row=0, column=2, padx=10, pady=10, sticky="e")
+
+                # Mark as completed button (if not already)
+            if not delivery.completed:
+                btn_complete = ctk.CTkButton(item_frame, text="Completed",
+                                                command=lambda d=delivery: self.mark_as_completed(d))
                 btn_complete.grid(row=1, column=2, padx=10, pady=5, sticky="e")
 
             item_frame.grid_columnconfigure(1, weight=1)
@@ -236,14 +376,45 @@ class DeliveryApp(ctk.CTk):
             self.show_view_deliveries()
 
     def show_view_invoices(self):
+        self.show_invoices()
+
+    def show_invoices(self):
         self.clear_main_frame()
+        invoices = self.db.get_all_invoices()
+        main_frame = ctk.CTkFrame(self.main_frame, fg_color="#232323")  # <-- parent is self.main_frame
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        label = ctk.CTkLabel(self.main_frame, text="Invoice", font=ctk.CTkFont(size=24, weight="bold"))
-        label.pack(pady=10)
+        headers = ["ID", "Delivery ID", "Amount", "Date", "Paid", "Actions"]
+        for col, header in enumerate(headers):
+            tk.Label(main_frame, text=header, bg="#232323", fg="white", font=("Arial", 10, "bold")).grid(row=0, column=col, padx=5, pady=5)
 
-        # Placeholder for invoice feature
-        placeholder = ctk.CTkLabel(self.main_frame, text="Invoice feature in development")
-        placeholder.pack(pady=20)
+        for row_idx, invoice in enumerate(invoices, start=1):
+            paid_text = "Yes" if invoice.paid else "No"
+            tk.Label(main_frame, text=invoice.id, bg="#232323", fg="white").grid(row=row_idx, column=0, padx=5, pady=5)
+            tk.Label(main_frame, text=invoice.delivery_id, bg="#232323", fg="white").grid(row=row_idx, column=1, padx=5, pady=5)
+            tk.Label(main_frame, text=invoice.amount, bg="#232323", fg="white").grid(row=row_idx, column=2, padx=5, pady=5)
+            tk.Label(main_frame, text=invoice.date, bg="#232323", fg="white").grid(row=row_idx, column=3, padx=5, pady=5)
+            tk.Label(main_frame, text=paid_text, bg="#232323", fg="white").grid(row=row_idx, column=4, padx=5, pady=5)
+            if not invoice.paid:
+                btn_pay = ctk.CTkButton(main_frame, text="Mark as Paid", width=100,
+                                        command=lambda inv_id=invoice.id: self.mark_invoice_paid(inv_id))
+                btn_pay.grid(row=row_idx, column=5, padx=5, pady=5)
+
+    def mark_invoice_paid(self, invoice_id):
+        self.db.mark_invoice_paid(invoice_id)
+        messagebox.showinfo("Invoice", "Invoice marked as paid.")
+        self.show_invoices()
+
+    def filter_deliveries(self, query):
+        query = query.lower().strip()
+        all_deliveries = self.db.get_all_deliveries()
+        filtered = []
+        for d in all_deliveries:
+            client = self.db.get_client_by_id(d.client_id)
+            if (query in d.description.lower()) or (client and query in client.name.lower()):
+                filtered.append(d)
+        self.filtered_deliveries = filtered
+        self.show_view_deliveries()
 
 
 if __name__ == "__main__":
