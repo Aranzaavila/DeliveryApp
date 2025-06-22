@@ -175,3 +175,19 @@ class Database:
         """)
         rows = cursor.fetchall()
         return {row[0]: row[1] for row in rows}
+    
+    def count_all_deliveries(self):
+        # Devuelve el total de entregas
+        return len(self.get_all_deliveries())
+
+    def count_completed(self):
+        # Devuelve el total de entregas completadas
+        return len([d for d in self.get_all_deliveries() if d.completed])
+
+    def count_pending(self):
+        # Devuelve el total de entregas pendientes
+        return len([d for d in self.get_all_deliveries() if not d.completed])
+
+    def total_earnings(self):
+        # Devuelve la suma de los fees de entregas completadas
+        return sum(d.fee for d in self.get_all_deliveries() if d.completed)
