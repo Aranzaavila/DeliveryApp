@@ -126,12 +126,24 @@ class Database:
             for row in rows
         ]
 
+    # Este es el método que ya tienes.
     def get_client_by_id(self, client_id):
         cursor = self.conn.cursor()
         cursor.execute("SELECT id, name FROM clients WHERE id=?", (client_id,))
         row = cursor.fetchone()
         if row:
             return Client(id=row[0], name=row[1])
+        return None
+
+    
+    def get_client_by_name(self, client_name):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id, name FROM clients WHERE name = ?", (client_name,))
+        row = cursor.fetchone()
+        if row:
+            # Si se encuentra una fila, crea un objeto Client con los datos
+            return Client(id=row[0], name=row[1])
+        # Si no se encuentra ninguna fila, devuelve None
         return None
 
     def mark_delivery_completed(self, delivery_id):
