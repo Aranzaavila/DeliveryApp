@@ -101,7 +101,7 @@ After launching the app, use the sidebar to:
 
 *Create Delivery View:*
 
-![Create Delivery Screenshot](screenshots/create_delivery.png)
+![Create Delivery Screenshot](C:\Users\ariav\OneDrive\Imágenes\project_screenshots\create_delivery.png)
 
 *Deliveries List with Card-Based Design:*
 
