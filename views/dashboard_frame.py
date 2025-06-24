@@ -1,7 +1,9 @@
 import customtkinter as ctk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
+import calendar
+import numpy as np
+import datetime
 
 class DashboardFrame(ctk.CTkFrame):
     def __init__ (self, master, controller):
@@ -40,8 +42,6 @@ class DashboardFrame(ctk.CTkFrame):
         # Los guardamos como atributos de la clase para poder actualizarlos después.
         self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2, figsize=(8, 4), dpi=100)
         self.fig.patch.set_facecolor('#242424') # Color de fondo de la figura
-
-        # Estilo para los gráficos
         plt.rcParams['text.color'] = '#FFFFFF'
         
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
@@ -77,7 +77,6 @@ class DashboardFrame(ctk.CTkFrame):
         # Gráfico de pastel
         completed = stats["completed"]
         pending = stats["pending"]
-        # Evitar error si no hay datos
         if completed == 0 and pending == 0:
             pie_data = [1]
             pie_labels = ["No Data"]
@@ -91,16 +90,40 @@ class DashboardFrame(ctk.CTkFrame):
         self.ax1.set_title("Delivery Status", color="#FFFFFF")
         self.ax1.set_facecolor('#242424')
             
-        months, earnings = self.controller.get_earnings_over_time()
+        activity_data = self.controller.get_daily_activity_for_current_month()
+        today = datetime.date.today()
 
-        self.ax2.plot(months, earnings, marker='o', linestyle='-', color='#00b894') 
-        self.ax2.set_title("Earnings Over Time", color="#FFFFFF")
-        self.ax2.set_ylabel("Earnings ($)", color="#FFFFFF")
-        self.ax2.set_facecolor('#00b894')
-        plt.setp(self.ax2.get_xticklabels(), rotation=30, ha='right') 
-                
-        self.fig.tight_layout()
+        # Obtener el calendario del mes actual como una matriz (semanas x días)
+        cal_matrix = calendar.monthcalendar(today.year, today.month)
+
+        # Crear una matriz de datos con los conteos de actividad
+        data_matrix = np.zeros((len(cal_matrix), 7))
+        for r, week in enumerate(cal_matrix):
+            for c, day in enumerate(week):
+                if day != 0 and day in activity_data:
+                    data_matrix[r, c] = activity_data[day]
+
+        # Dibujar el heatmap
+        self.ax2.set_title(f"Daily Activity - {today.strftime('%B %Y')}", color="#FFFFFF")
+        self.ax2.imshow(data_matrix, cmap="Blues", aspect="auto")
         
+        # Configurar las etiquetas de los ejes
+        self.ax2.set_xticks(np.arange(7))
+        self.ax2.set_xticklabels(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], color="white")
+        self.ax2.set_yticks([]) # Ocultamos los números de semana para un look más limpio
+
+        # Añadir el número del día en cada celda
+        for r, week in enumerate(cal_matrix):
+            for c, day in enumerate(week):
+                if day != 0:
+                    # El color del texto cambia a blanco si el fondo es muy oscuro
+                    text_color = "white" if data_matrix[r, c] > data_matrix.max() / 2 else "black"
+                    self.ax2.text(c, r, day, ha="center", va="center", color=text_color, fontsize=8)
+
+        self.ax2.set_facecolor('#242424')
+
+        # 3. Finalizar y dibujar
+        self.fig.tight_layout(pad=3.0)
         self.canvas.draw()
 
-        
+            

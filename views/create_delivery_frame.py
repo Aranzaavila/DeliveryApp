@@ -37,8 +37,31 @@ class CreateDeliveryFrame(ctk.CTkFrame):
         self.fee_entry.grid(row=3, column=1, sticky="ew", padx=10, pady=10)
 
         ctk.CTkLabel(self, text="Deadline:", font=font_label).grid(row=4, column=0, sticky="e", padx=10, pady=10)
-        self.deadline_entry = DateEntry(self, date_pattern='y-mm-dd', width=18)
+        # En views/create_delivery_frame.py, dentro de create_widgets()
+
+
+        style = {
+            'background': '#2b2b2b',          # Fondo del campo de entrada
+            'foreground': 'white',            # Texto del campo de entrada
+            'borderwidth': 2,
+            'headersbackground': '#00b894',    # Fondo de la cabecera (tu color principal)
+            'headersforeground': 'white',     # Texto de la cabecera
+            'selectbackground': '#008f7a',     # Fondo del día seleccionado (un verde más oscuro)
+            'selectforeground': 'white',      # Texto del día seleccionado
+            'normalbackground': '#3b3b3b',     # Fondo de los días normales
+            'normalforeground': 'white',      # Texto de los días normales
+            'othermonthforeground': 'gray50', # Texto de los días de otros meses
+            'othermonthbackground': '#2b2b2b'  # Fondo de los días de otros meses
+        }
+
+        self.deadline_entry = DateEntry(
+            self, 
+            date_pattern='y-mm-dd', 
+            width=18,
+            **style  
+        )
         self.deadline_entry.grid(row=4, column=1, sticky="w", padx=10, pady=10)
+        
         
         self.grid_columnconfigure(1, weight=1) 
 

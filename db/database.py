@@ -203,3 +203,15 @@ class Database:
     def total_earnings(self):
         # Devuelve la suma de los fees de entregas completadas
         return sum(d.fee for d in self.get_all_deliveries() if d.completed)
+
+    def get_delivery_by_id(self,delivery_id):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id, client_id, description, completed, completed_date, fee, deadline FROM deliveries WHERE id=?", (delivery_id,))
+        row = cursor.fetchone()
+        if row:
+            return Delivery(
+                id=row[0], client_id=row[1], description=row[2],
+                completed=bool(row[3]), completed_date=row[4],
+                fee=row[5], deadline=row[6]
+            )
+        return None

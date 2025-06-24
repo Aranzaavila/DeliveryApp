@@ -9,7 +9,7 @@ class AppController:
     def __init__(self, db_file):
         self.db = Database(db_file)
 
-    # MÉTODO 1: Lógica para crear una entrega y su factura
+    
     def create_delivery_with_invoice(self, client_name, description, fee, deadline):
         client = self.db.get_client_by_name(client_name)
         if not client:
@@ -80,7 +80,7 @@ class AppController:
         invoices = self.db.get_all_invoices()
         data_for_view = []
         for invoice in invoices:
-            # Buscamos la entrega asociada a esta factura
+            
             delivery = self.db.get_delivery_by_id(invoice.delivery_id) # <- Necesitaremos añadir este método a la BD
             if delivery:
                 client = self.db.get_client_by_id(delivery.client_id)
@@ -111,10 +111,10 @@ class AppController:
     
 
     def get_earnings_over_time(self):
-        # defaultdict(float) crea un diccionario donde si una clave no existe, se le asigna 0.0 por defecto.
+        
         earnings_by_month = defaultdict(float)
 
-        # Obtenemos solo las entregas completadas, ya que son las que generan ganancias reales.
+       
         completed_deliveries = [d for d in self.db.get_all_deliveries() if d.completed and d.completed_date]
 
         for delivery in completed_deliveries:
@@ -124,13 +124,29 @@ class AppController:
             month_key = completion_date.strftime("%Y-%m")
             earnings_by_month[month_key] += delivery.fee
 
-        # Ordenamos los meses cronológicamente y los devolvemos
+        
         sorted_months = sorted(earnings_by_month.keys())
-
-        # Devolvemos dos listas: una para las etiquetas (meses) y otra para los valores (ganancias)
+       
         labels = sorted_months
         values = [earnings_by_month[key] for key in sorted_months]
 
         return labels, values
+    
+    def get_daily_activity_for_current_month(self):
+    
+        activity = defaultdict(int)
+        today = datetime.date.today()
+
+       
+        completed_deliveries = [d for d in self.db.get_all_deliveries() if d.completed and d.completed_date]
+
+        for delivery in completed_deliveries:
+            completion_date = datetime.datetime.strptime(delivery.completed_date, "%Y-%m-%d").date()
+
+            
+            if completion_date.month == today.month and completion_date.year == today.year:
+                activity[completion_date.day] += 1
+
+        return dict(activity)
     
     

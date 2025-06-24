@@ -60,10 +60,12 @@ class DeliveryApp(ctk.CTk):
             self.frames[frame_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        # --- Mostramos la vista inicial ---
+       
         self.show_dashboard_view()
         self.after(2000, self.check_reminders) 
 
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+    
     def show_frame(self, frame_name):
         frame = self.frames[frame_name]
         # Si el frame tiene un método para refrescar datos, lo llamamos
@@ -88,5 +90,7 @@ class DeliveryApp(ctk.CTk):
         messages = self.controller.get_reminders()
         if messages:
             messagebox.showwarning("Reminders", messages)
-
+    
+    def on_closing(self):
+        self.destroy()
        
