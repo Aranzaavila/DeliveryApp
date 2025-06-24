@@ -1,57 +1,63 @@
-# DELIVERY MANAGEMENT APP
+# 🚚 Delivery Management App
 
-Welcome to DeliveryApp! A modern and functional desktop application for delivery management. The application allows users to create, view, and manage deliveries and invoices in an intuitive and visually appealing way.
+Welcome to **DeliveryApp**!  
+A modern, user-friendly desktop application for managing deliveries and invoices.  
+Built with a clean architecture and a beautiful dark-themed interface, DeliveryApp helps you organize, track, and analyze your delivery business with ease.
 
 ---
 
 ## 📑 Table of Contents
 
-- [Key Features](#-key-features)
-- [Technologies Used](#-technologies-used)
-- [Getting Started](#-getting-started)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Getting Started](#getting-started)
 - [Usage](#usage)
-- [Screenshots](#-application-screenshots)
+- [Screenshots](#screenshots)
 - [Contributing](#contributing)
 - [License](#license)
 
 ---
 
-## 🌟 Key Features
+## 🌟 Features
 
-* **Advanced Architecture:** Implements an MVC-like pattern (Model-View-Controller) to separate business logic (`controller`), user interface (`views`), and data access (`database`), resulting in cleaner, more maintainable, and scalable code.
-* **Interactive Dashboard:** Real-time dashboard with KPIs, status charts, and activity heatmap.
-* **Complete Delivery Management:** Create, view, and mark deliveries as completed.
-* **Invoicing System:** Automatic invoice generation and management.
-* **Modern User Interface:** Built with **CustomTkinter** for a sleek, dark-themed appearance.
-* **Notifications & Reminders:** Alerts for overdue deliveries and unpaid invoices.
+- **MVC Architecture:** Clean separation of logic, UI, and data for maintainability and scalability.
+- **Interactive Dashboard:** Real-time KPIs, status charts, and an activity heatmap for quick insights.
+- **Delivery Management:** Create, edit, delete, and mark deliveries as completed.
+- **Invoicing System:** Automatic invoice generation and management for each delivery.
+- **Modern UI:** Built with CustomTkinter for a sleek, dark-themed look.
+- **Notifications & Alerts:** Visual alerts for overdue and soon-to-expire deliveries, and unpaid invoices.
+- **Change History:** Track edits and completion events for each delivery.
+- **Data Export:** Export deliveries and invoices to CSV for external analysis.
+- **Search & Filters:** Quickly find deliveries by client, status, or date.
+- **Responsive Design:** Card-based layout adapts to different window sizes.
 
 ---
 
 ## 🛠️ Technologies Used
 
-* **Language:** Python 3
-* **GUI Framework:** CustomTkinter
-* **Charts & Visualizations:** Matplotlib, NumPy
-* **Additional Widgets:** tkcalendar
-* **Database:** SQLite 3
+- **Language:** Python 3.10+
+- **GUI Framework:** [CustomTkinter]
+- **Charts & Visualizations:** Matplotlib, NumPy
+- **Date Picker:** tkcalendar
+- **Database:** SQLite 3
 
 ---
 
 ## 🚀 Getting Started
 
-Follow these steps to get the project running on your local machine.
+Follow these steps to run the project locally.
 
 ### Prerequisites
 
-* Python 3.10 or higher
-* `pip` (Python's package manager)
+- Python 3.10 or higher
+- `pip` (Python package manager)
 
 ### Installation
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/Aranzaavila/DeliveryApp.git 
-    cd PROJECT-S2
+    git clone https://github.com/Aranzaavila/DeliveryApp.git
+    cd DeliveryApp
     ```
 
 2. **Create and activate a virtual environment (recommended):**
@@ -65,7 +71,7 @@ Follow these steps to get the project running on your local machine.
     source .venv/bin/activate
     ```
 
-3. **Install the dependencies:**
+3. **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
@@ -75,44 +81,51 @@ Follow these steps to get the project running on your local machine.
     python main.py
     ```
 
-And that's it! The application should now launch.
+---
+
+## 💡 Usage
+
+After launching the app, use the sidebar to:
+- **View Dashboard:** See key statistics, charts, and your activity heatmap.
+- **Create Deliveries:** Add new deliveries with client, description, fee, and deadline.
+- **Manage Deliveries:** Edit, delete, complete, and view the history of each delivery.
+- **Manage Invoices:** Track, mark as paid, and review all invoices.
 
 ---
 
-## Usage
-
-After launching, use the sidebar to:
-- View dashboard statistics
-- Create new deliveries
-- View and manage deliveries
-- Manage invoices
-
----
-
-## 🖼️ Application Screenshots
+## 🖼️ Screenshots
 
 *Dashboard View with Activity Heatmap:*
-> ss
+
+![Dashboard Screenshot](screenshots/dashboard.png)
 
 *Create Delivery View:*
-> ss
+
+![Create Delivery Screenshot](screenshots/create_delivery.png)
 
 *Deliveries List with Card-Based Design:*
-> ss
+
+![Deliveries List Screenshot](screenshots/deliveries_list.png)
 
 *Invoices List with Card-Based Design:*
-> ss
+
+![Invoices List Screenshot](screenshots/invoices_list.png)
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request.
+Contributions are welcome!  
+If you have suggestions or improvements, please open an issue or submit a pull request.
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License.
+
+---
+
+*Created by Aranza Avila for academic purposes.*
 
 

@@ -54,7 +54,8 @@ class AppController:
         Mark a delivery as completed in the database.
         """
         self.db.mark_delivery_completed(delivery_id)
-
+        self.db.add_delivery_history(delivery_id, "Completed")
+    
     def mark_invoice_as_paid(self, invoice_id):
         """
         Mark an invoice as paid in the database.
@@ -199,4 +200,16 @@ class AppController:
                 activity[completion_date.day] += 1
 
         return dict(activity)
+    
+    def delete_delivery(self, delivery_id):
+        """
+        Delete a delivery by its ID.
+        """
+        self.db.delete_delivery(delivery_id)
 
+    def update_delivery(self, delivery_id, description, fee, deadline):
+        """
+        Update a delivery's details.
+        """
+        self.db.update_delivery(delivery_id, description, fee, deadline)
+        self.db.add_delivery_history(delivery_id, "Edited")

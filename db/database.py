@@ -2,6 +2,7 @@ import sqlite3
 from models.client import Client
 from models.delivery import Delivery
 from models.invoice import Invoice
+import datetime
 
 
 class Database:
@@ -65,7 +66,16 @@ class Database:
                 FOREIGN KEY (delivery_id) REFERENCES deliveries(id)
             )
         """)
-
+         # history table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS delivery_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            delivery_id INTEGER NOT NULL,
+            action TEXT NOT NULL,
+            timestamp TEXT NOT NULL,
+            FOREIGN KEY (delivery_id) REFERENCES deliveries(id)
+        )
+    """)
         self.conn.commit()
 
     def _add_completed_date_column(self):
@@ -205,7 +215,7 @@ class Database:
         Mark a delivery as completed and set the completed_date.
         :param delivery_id: ID of the delivery to mark as completed.
         """
-        import datetime
+        
         cursor = self.conn.cursor()
         completed_date = datetime.datetime.now().strftime("%Y-%m-%d")
         cursor.execute(
@@ -240,10 +250,9 @@ class Database:
         rows = cursor.fetchall()
         return [Invoice(*row) for row in rows]
 
-    def mark_invoice_paid(self, invoice_id):
+    def mark_invoice_as_paid(self, invoice_id):
         """
         Mark an invoice as paid.
-        :param invoice_id: ID of the invoice to mark as paid.
         """
         cursor = self.conn.cursor()
         cursor.execute("UPDATE invoices SET paid=1 WHERE id=?", (invoice_id,))
@@ -265,28 +274,28 @@ class Database:
         return {row[0]: row[1] for row in rows}
 
     def count_all_deliveries(self):
-        """
-        Return the total number of deliveries.
-        """
-        return len(self.get_all_deliveries())
+        """Return the total number of deliveries directly from the DB."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT COUNT(id) FROM deliveries")
+        return cursor.fetchone()[0]
 
     def count_completed(self):
-        """
-        Return the total number of completed deliveries.
-        """
-        return len([d for d in self.get_all_deliveries() if d.completed])
+        """Return the total number of completed deliveries directly from the DB."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT COUNT(id) FROM deliveries WHERE completed = 1")
+        return cursor.fetchone()[0]
 
     def count_pending(self):
-        """
-        Return the total number of pending deliveries.
-        """
-        return len([d for d in self.get_all_deliveries() if not d.completed])
+        """Return the total number of pending deliveries directly from the DB."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT COUNT(id) FROM deliveries WHERE completed = 0")
+        return cursor.fetchone()[0]
 
     def total_earnings(self):
-        """
-        Return the sum of fees for completed deliveries.
-        """
-        return sum(d.fee for d in self.get_all_deliveries() if d.completed)
+        """Return the sum of fees for completed deliveries directly from the DB."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT COALESCE(SUM(fee), 0) FROM deliveries WHERE completed = 1")
+        return cursor.fetchone()[0]
 
     def get_delivery_by_id(self, delivery_id):
         """
@@ -307,3 +316,46 @@ class Database:
                 fee=row[5], deadline=row[6]
             )
         return None
+
+    def delete_delivery(self, delivery_id):
+        """
+        Delete a delivery from the database by its ID.
+        """
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM invoices WHERE delivery_id=?", (delivery_id,))
+        cursor.execute("DELETE FROM deliveries WHERE id=?", (delivery_id,))
+        self.conn.commit()
+
+    def update_delivery(self, delivery_id, description, fee, deadline):
+        """
+        Update the details of a delivery.
+        """
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE deliveries SET description=?, fee=?, deadline=? WHERE id=?",
+            (description, fee, deadline, delivery_id)
+        )
+        self.conn.commit()
+    def add_delivery_history(self, delivery_id, action):
+        """
+        Add a record to the delivery's change history.
+        """
+        
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "INSERT INTO delivery_history (delivery_id, action, timestamp) VALUES (?, ?, ?)",
+            (delivery_id, action, timestamp)
+        )
+        self.conn.commit()
+
+    def get_delivery_history(self, delivery_id):
+        """
+        Get the change history for a delivery.
+        """
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "SELECT action, timestamp FROM delivery_history WHERE delivery_id=? ORDER BY timestamp DESC",
+            (delivery_id,)
+        )
+        return cursor.fetchall()
