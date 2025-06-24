@@ -1,6 +1,6 @@
 # DELIVERY MANAGEMENT APP
 
-Welcome to DeliveryApp! A modern and functional desktop application for delivery management, designed as a project for the "Advanced Coding" class. The application allows users to create, view, and manage deliveries and invoices in an intuitive and visually appealing way.
+Welcome to DeliveryApp! A modern and functional desktop application for delivery management. The application allows users to create, view, and manage deliveries and invoices in an intuitive and visually appealing way.
 
 ---
 
@@ -50,7 +50,7 @@ Follow these steps to get the project running on your local machine.
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/Aranzaavila/PROJECT-S2.git
+    git clone https://github.com/Aranzaavila/DeliveryApp.git 
     cd PROJECT-S2
     ```
 
