@@ -97,19 +97,23 @@ After launching the app, use the sidebar to:
 
 *Dashboard View with Activity Heatmap:*
 
-![Dashboard Screenshot](screenshots/dashboard.png)
+![dashboard](https://github.com/user-attachments/assets/f601c563-764a-4583-8914-8238e57b703a)
+
 
 *Create Delivery View:*
 
-![Create Delivery Screenshot](C:\Users\ariav\OneDrive\Imágenes\project_screenshots\create_delivery.png)
+![create_delivery](https://github.com/user-attachments/assets/037dd08b-2a21-4a26-99a2-3b77ced4acc2)
+
 
 *Deliveries List with Card-Based Design:*
 
-![Deliveries List Screenshot](screenshots/deliveries_list.png)
+![view_deliveries](https://github.com/user-attachments/assets/506c556d-4151-4597-b54f-1e5b86ee7481)
+
 
 *Invoices List with Card-Based Design:*
 
-![Invoices List Screenshot](screenshots/invoices_list.png)
+![invoice](https://github.com/user-attachments/assets/16a70cc6-f80f-483a-a200-773331cac527)
+
 
 ---
 
